@@ -21,13 +21,21 @@ jobs:
       - name: Experiment
         run: |
           docker run `
-          --publish 8081:8081 `
+          -p 8081:8081 `
+          -p 8901:8901 `
+          -p 8902:8902 `
+          -p 8903:8903 `
+          -p 10250:10250 `
+          -p 10251:10251 `
+          -p 10252:10252 `
+          -p 10253:10253 `
+          -p 10254:10254 `
+          -p 10255:10255 `
+          -p 10350:10350 `
           --detach `
           --memory 3g --cpus=2.0 `
           --name=test-linux-emulator `
-          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 `
-          --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false `
-          --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 `
+          -e AZURE_COSMOS_EMULATOR_PARTITION_COUNT=3 -it
           mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
           Write-Host "Waiting"
           Start-Sleep -Seconds 60
