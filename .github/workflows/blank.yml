@@ -27,7 +27,7 @@ jobs:
           -p 10250-10255:10250-10255 `
           --detach `
           --memory 3g --cpus=2.0 `
-          --name=test-linux-emulator `
+          --name=test-linux-emulator -t`
           mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
           Write-Host "Waiting"
           Start-Sleep -Seconds 60
