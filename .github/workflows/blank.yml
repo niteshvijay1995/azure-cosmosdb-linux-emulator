@@ -20,8 +20,8 @@ jobs:
   container-test-job:
     runs-on: ubuntu-latest
     steps:
-     - name: Experiment
-       run: |
+      - name: Experiment
+        run: |
           docker run `
           --publish 8081:8081 `
           --detach `
@@ -35,4 +35,4 @@ jobs:
           Start-Sleep -Seconds 60
           docker logs test-linux-emulator
           Write-Host "Testing"
-      shell: pwsh
+        shell: pwsh
