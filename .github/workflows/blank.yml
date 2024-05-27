@@ -35,4 +35,4 @@ jobs:
           Start-Sleep -Seconds 60
           docker logs test-linux-emulator
           Write-Host "Testing"
-        shell: pwsh
+      shell: pwsh
