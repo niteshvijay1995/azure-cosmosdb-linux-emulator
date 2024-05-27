@@ -34,5 +34,6 @@ jobs:
           mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
           Write-Host "Waiting"
           Start-Sleep -Seconds 60
-          Invoke-WebRequest  -UseBasicParsing -Uri https://host.docker.internal:8081/_explorer/index.html
+          docker logs test-linux-emulator
+          Invoke-WebRequest  -UseBasicParsing -Uri https://localhost:8081/_explorer/index.html
         shell: pwsh
