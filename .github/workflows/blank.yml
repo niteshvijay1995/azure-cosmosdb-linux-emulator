@@ -18,14 +18,18 @@ jobs:
   container-test-job:
     runs-on: ubuntu-latest
     container:
-      image: node:18
+      image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
       env:
-        NODE_ENV: development
+        AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 20
       ports:
-        - 80
+        - "8081:8081"
+        - "10251:10251"
+        - "10252:10252"
+        - "10253:10253"
+        - "10254:10254"
       volumes:
         - my_docker_volume:/volume_mount
-      options: --cpus 1
+      options: --name azure-cosmosdb-emulator -m 3g --cpus=2.0 
     steps:
       - name: Check for dockerenv file
         run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
