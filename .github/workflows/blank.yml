@@ -17,19 +17,20 @@ on:
 jobs:
   container-test-job:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
-      env:
-        AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 20
-      ports:
-        - "8081:8081"
-        - "10251:10251"
-        - "10252:10252"
-        - "10253:10253"
-        - "10254:10254"
-      volumes:
-        - my_docker_volume:/volume_mount
-      options: --name azure-cosmosdb-emulator -m 3g --cpus=2.0 
     steps:
-      - name: Check for dockerenv file
-        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
+      - name: Experiment
+        run: |
+          docker run `
+          --publish 8081:8081 `
+          --detach `
+          --memory 3g --cpus=2.0 `
+          --name=test-linux-emulator `
+          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 `
+          --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false `
+          --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 `
+          mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+          Write-Host "Waiting"
+          Start-Sleep -Seconds 60
+          docker logs test-linux-emulator
+          Write-Host "Testing"
+        shell: pwsh
