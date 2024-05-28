@@ -1,41 +1,82 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   schedule:
     - cron: '*/5 * * * *'
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  container-test-job:
+  container-test-job-tty:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Experiment
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Run Azure Cosmos DB Emulator with TTY
         run: |
-          docker run `
-          --publish 8081:8081 `
-          --detach `
-          --memory 3g --cpus=2.0 `
-          --name=test-linux-emulator `
-          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 `
-          --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false `
-          --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1`
-          --tty `
+          docker run \
+          --publish 8081:8081 \
+          --detach \
+          --memory 3g --cpus=2.0 \
+          --name=test-linux-emulator-tty \
+          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 \
+          --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false \
+          --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
+          --tty \
           mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
-          Write-Host "Waiting"
-          Start-Sleep -Seconds 60
-          docker logs test-linux-emulator
-          curl -k "https://127.0.0.1:8081/_explorer/emulator.pem" > emulator.pem
-          keytool -importcert -keystore cacerts -alias emulator_cert -file "emulator.pem" -storepass "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" -noprompt -trustcacerts
-          curl -k "https://127.0.0.1:8081/_explorer/index.html"
-        shell: pwsh
+
+      - name: Wait for Emulator to Start
+        run: sleep 60
+
+      - name: Get Emulator Logs
+        run: docker logs test-linux-emulator-tty
+
+      - name: Download Emulator Certificate
+        run: curl -k "https://127.0.0.1:8081/_explorer/emulator.pem" -o emulator.pem
+
+      - name: Import Emulator Certificate
+        run: |
+          sudo keytool -importcert -keystore /etc/ssl/certs/java/cacerts -alias emulator_cert -file emulator.pem -storepass "changeit" -noprompt -trustcacerts
+
+      - name: Test Emulator Endpoint
+        run: curl -k "https://127.0.0.1:8081/_explorer/index.html"
+
+  container-test-job-no-tty:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Run Azure Cosmos DB Emulator without TTY
+        run: |
+          docker run \
+          --publish 8081:8081 \
+          --detach \
+          --memory 3g --cpus=2.0 \
+          --name=test-linux-emulator-no-tty \
+          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 \
+          --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false \
+          --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
+          mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+
+      - name: Wait for Emulator to Start
+        run: sleep 60
+
+      - name: Get Emulator Logs
+        run: docker logs test-linux-emulator-no-tty
+
+      - name: Download Emulator Certificate
+        run: curl -k "https://127.0.0.1:8081/_explorer/emulator.pem" -o emulator.pem
+
+      - name: Import Emulator Certificate
+        run: |
+          sudo keytool -importcert -keystore /etc/ssl/certs/java/cacerts -alias emulator_cert -file emulator.pem -storepass "changeit" -noprompt -trustcacerts
+
+      - name: Test Emulator Endpoint
+        run: curl -k "https://127.0.0.1:8081/_explorer/index.html"
