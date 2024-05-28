@@ -36,13 +36,6 @@ jobs:
       - name: Get Emulator Logs
         run: docker logs test-linux-emulator-tty
 
-      - name: Download Emulator Certificate
-        run: curl -k "https://127.0.0.1:8081/_explorer/emulator.pem" -o emulator.pem
-
-      - name: Import Emulator Certificate
-        run: |
-          sudo keytool -importcert -keystore /etc/ssl/certs/java/cacerts -alias emulator_cert -file emulator.pem -storepass "changeit" -noprompt -trustcacerts
-
       - name: Test Emulator Endpoint
         run: curl -k "https://127.0.0.1:8081/_explorer/index.html"
 
@@ -70,13 +63,6 @@ jobs:
 
       - name: Get Emulator Logs
         run: docker logs test-linux-emulator-no-tty
-
-      - name: Download Emulator Certificate
-        run: curl -k "https://127.0.0.1:8081/_explorer/emulator.pem" -o emulator.pem
-
-      - name: Import Emulator Certificate
-        run: |
-          sudo keytool -importcert -keystore /etc/ssl/certs/java/cacerts -alias emulator_cert -file emulator.pem -storepass "changeit" -noprompt -trustcacerts
 
       - name: Test Emulator Endpoint
         run: curl -k "https://127.0.0.1:8081/_explorer/index.html"
