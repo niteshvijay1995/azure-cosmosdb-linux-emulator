@@ -24,38 +24,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Run Azure Cosmos DB Emulator with TTY
+      - name: Run and Test Emulator with TTY
         run: |
-          docker run \
-          --publish 8081:8081 \
-          --detach \
-          --memory 3g --cpus=2.0 \
-          --name=test-linux-emulator-tty \
-          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
-          --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
-          --tty \
-          mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+          for i in {1..3}; do
+            echo "Run #$i"
 
-      - name: Wait for Emulator to Start
-        run: sleep 60
+            docker run \
+              --publish 8081:8081 \
+              --detach \
+              --memory 3g --cpus=2.0 \
+              --name=test-linux-emulator-tty-$i \
+              --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
+              --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
+              --tty \
+              mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
 
-      - name: Get Emulator Logs
-        run: docker logs test-linux-emulator-tty
+            echo "Waiting for Emulator to Start"
+            sleep 60
 
-      - name: Check Emulator Logs for 'Started' Keyword
-        run: |
-          if docker logs test-linux-emulator-tty | grep -q "Started"; then
-            echo "Emulator started successfully."
-          else
-            echo "Emulator failed to start." >&2
-            exit 1
-          fi
+            echo "Getting Emulator Logs"
+            docker logs test-linux-emulator-tty-$i
 
-      - name: Test Emulator Endpoint
-        run: curl -k "https://127.0.0.1:8081/_explorer/index.html"
+            echo "Checking Emulator Logs for 'Started' Keyword"
+            if docker logs test-linux-emulator-tty-$i | grep -q "Started"; then
+              echo "Emulator started successfully."
+            else
+              echo "Emulator failed to start." >&2
+              exit 1
+            fi
 
-      - name: Cleanup
-        run: docker rm -f test-linux-emulator-tty
+            echo "Testing Emulator Endpoint"
+            curl -k "https://127.0.0.1:8081/_explorer/index.html"
+
+            echo "Cleaning up"
+            docker rm -f test-linux-emulator-tty-$i
+          done
 
   container-test-job-no-tty:
     runs-on: ubuntu-latest
@@ -71,34 +74,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Run Azure Cosmos DB Emulator without TTY
+      - name: Run and Test Emulator without TTY
         run: |
-          docker run \
-          --publish 8081:8081 \
-          --detach \
-          --memory 3g --cpus=2.0 \
-          --name=test-linux-emulator-no-tty \
-          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
-          --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
-          mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+          for i in {1..3}; do
+            echo "Run #$i"
 
-      - name: Wait for Emulator to Start
-        run: sleep 60
+            docker run \
+              --publish 8081:8081 \
+              --detach \
+              --memory 3g --cpus=2.0 \
+              --name=test-linux-emulator-no-tty-$i \
+              --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
+              --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
+              mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
 
-      - name: Get Emulator Logs
-        run: docker logs test-linux-emulator-no-tty
+            echo "Waiting for Emulator to Start"
+            sleep 60
 
-      - name: Check Emulator Logs for 'Started' Keyword
-        run: |
-          if docker logs test-linux-emulator-no-tty | grep -q "Started"; then
-            echo "Emulator started successfully."
-          else
-            echo "Emulator failed to start." >&2
-            exit 1
-          fi
+            echo "Getting Emulator Logs"
+            docker logs test-linux-emulator-no-tty-$i
 
-      - name: Test Emulator Endpoint
-        run: curl -k "https://127.0.0.1:8081/_explorer/index.html"
+            echo "Checking Emulator Logs for 'Started' Keyword"
+            if docker logs test-linux-emulator-no-tty-$i | grep -q "Started"; then
+              echo "Emulator started successfully."
+            else
+              echo "Emulator failed to start." >&2
+              exit 1
+            fi
 
-      - name: Cleanup
-        run: docker rm -f test-linux-emulator-no-tty
+            echo "Testing Emulator Endpoint"
+            curl -k "https://127.0.0.1:8081/_explorer/index.html"
+
+            echo "Cleaning up"
+            docker rm -f test-linux-emulator-no-tty-$i
+          done
