@@ -14,8 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Print Machine Information
+        run: |
+          lscpu
+          free -h
+          df -h
+          uname -a
+
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
       - name: Run Azure Cosmos DB Emulator with TTY
         run: |
@@ -28,7 +35,7 @@ jobs:
           --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false \
           --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
           --tty \
-          mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+          mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
 
       - name: Wait for Emulator to Start
         run: sleep 60
@@ -36,15 +43,34 @@ jobs:
       - name: Get Emulator Logs
         run: docker logs test-linux-emulator-tty
 
+      - name: Check Emulator Logs for 'Started' Keyword
+        run: |
+          if docker logs test-linux-emulator-tty | grep -q "Started"; then
+            echo "Emulator started successfully."
+          else
+            echo "Emulator failed to start." >&2
+            exit 1
+          fi
+
       - name: Test Emulator Endpoint
         run: curl -k "https://127.0.0.1:8081/_explorer/index.html"
+
+      - name: Cleanup
+        run: docker rm -f test-linux-emulator-tty
 
   container-test-job-no-tty:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Print Machine Information
+        run: |
+          lscpu
+          free -h
+          df -h
+          uname -a
+
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
       - name: Run Azure Cosmos DB Emulator without TTY
         run: |
@@ -56,7 +82,7 @@ jobs:
           --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 \
           --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false \
           --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
-          mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+          mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
 
       - name: Wait for Emulator to Start
         run: sleep 60
@@ -64,5 +90,17 @@ jobs:
       - name: Get Emulator Logs
         run: docker logs test-linux-emulator-no-tty
 
+      - name: Check Emulator Logs for 'Started' Keyword
+        run: |
+          if docker logs test-linux-emulator-no-tty | grep -q "Started"; then
+            echo "Emulator started successfully."
+          else
+            echo "Emulator failed to start." >&2
+            exit 1
+          fi
+
       - name: Test Emulator Endpoint
         run: curl -k "https://127.0.0.1:8081/_explorer/index.html"
+
+      - name: Cleanup
+        run: docker rm -f test-linux-emulator-no-tty
