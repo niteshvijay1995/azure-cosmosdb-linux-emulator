@@ -31,8 +31,7 @@ jobs:
           --detach \
           --memory 3g --cpus=2.0 \
           --name=test-linux-emulator-tty \
-          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 \
-          --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false \
+          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
           --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
           --tty \
           mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
@@ -79,8 +78,7 @@ jobs:
           --detach \
           --memory 3g --cpus=2.0 \
           --name=test-linux-emulator-no-tty \
-          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 \
-          --env AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false \
+          --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
           --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
           mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
 
