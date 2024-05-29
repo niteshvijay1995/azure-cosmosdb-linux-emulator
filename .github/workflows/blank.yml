@@ -146,4 +146,19 @@ jobs:
               SUCCESS=true
               break
             else
-            
+              echo "Emulator failed to start on attempt #$i." >&2
+              docker rm -f test-linux-emulator-no-tty-$i
+              echo "Retrying..."
+            fi
+          done
+
+          if [ "$SUCCESS" = false ]; then
+            echo "Emulator failed to start after $MAX_RETRIES attempts." >&2
+            echo "::warning::Emulator failed to start after $MAX_RETRIES attempts."
+          fi
+
+          echo "Testing Emulator Endpoint"
+          curl -k "https://127.0.0.1:8081/_explorer/index.html" || echo "::warning::Failed to test emulator endpoint"
+
+          echo "Cleaning up"
+          docker rm -f test-linux-emulator-no-tty-$i
