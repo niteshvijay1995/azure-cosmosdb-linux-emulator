@@ -1,9 +1,6 @@
 import os
 import uuid
-import asyncio
-import random
-from azure.cosmos.aio import CosmosClient
-from azure.cosmos import PartitionKey, exceptions, CosmosClientConfiguration, ContainerProxy, DatabaseProxy
+from azure.cosmos import CosmosClient, PartitionKey, exceptions
 
 class CosmosDbService:
     def __init__(self):
