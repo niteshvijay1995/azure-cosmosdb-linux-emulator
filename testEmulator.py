@@ -8,8 +8,8 @@ from azure.cosmos import PartitionKey, exceptions, CosmosClientConfiguration, Co
 class CosmosDbService:
     def __init__(self):
         # Cosmos DB Emulator connection string
-        self.endpoint = "https://localhost:8081/"
-        self.key = "C2y6yDjf5/R+ob0N8A6r4Q=="
+        self.endpoint = "https://127.0.0.1:8081/"
+        self.key = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
         self.database_name = "SampleDatabase"
         self.container_name = "SampleContainer"
         self.client = CosmosClient(self.endpoint, self.key)
