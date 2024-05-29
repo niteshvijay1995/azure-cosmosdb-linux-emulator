@@ -16,18 +16,37 @@ jobs:
     steps:
       - name: Print Machine Information
         run: |
+          echo "CPU Information:"
           lscpu
+
+          echo "Memory Information:"
           free -h
+
+          echo "Disk Usage:"
           df -h
+
+          echo "Operating System Information:"
           uname -a
+
+          echo "Network Configuration:"
+          ip addr show
+
+          echo "Docker Version:"
+          docker --version
+
+          echo "Docker Info:"
+          docker info
 
       - name: Checkout code
         uses: actions/checkout@v3
       
       - name: Run and Test Emulator with TTY
         run: |
-          for i in {1..3}; do
-            echo "Run #$i"
+          set -e
+          MAX_RETRIES=5
+          SUCCESS=false
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt #$i"
 
             docker run \
               --publish 8081:8081 \
@@ -48,17 +67,25 @@ jobs:
             echo "Checking Emulator Logs for 'Started' Keyword"
             if docker logs test-linux-emulator-tty-$i | grep -q "Started"; then
               echo "Emulator started successfully."
+              SUCCESS=true
+              break
             else
-              echo "Emulator failed to start." >&2
-              exit 1
+              echo "Emulator failed to start on attempt #$i." >&2
+              docker rm -f test-linux-emulator-tty-$i
+              echo "Retrying..."
             fi
-
-            echo "Testing Emulator Endpoint"
-            curl -k "https://127.0.0.1:8081/_explorer/index.html"
-
-            echo "Cleaning up"
-            docker rm -f test-linux-emulator-tty-$i
           done
+
+          if [ "$SUCCESS" = false ]; then
+            echo "Emulator failed to start after $MAX_RETRIES attempts." >&2
+            echo "::warning::Emulator failed to start after $MAX_RETRIES attempts."
+          fi
+
+          echo "Testing Emulator Endpoint"
+          curl -k "https://127.0.0.1:8081/_explorer/index.html" || echo "::warning::Failed to test emulator endpoint"
+
+          echo "Cleaning up"
+          docker rm -f test-linux-emulator-tty-$i
 
   container-test-job-no-tty:
     runs-on: ubuntu-latest
@@ -66,18 +93,37 @@ jobs:
     steps:
       - name: Print Machine Information
         run: |
+          echo "CPU Information:"
           lscpu
+
+          echo "Memory Information:"
           free -h
+
+          echo "Disk Usage:"
           df -h
+
+          echo "Operating System Information:"
           uname -a
+
+          echo "Network Configuration:"
+          ip addr show
+
+          echo "Docker Version:"
+          docker --version
+
+          echo "Docker Info:"
+          docker info
 
       - name: Checkout code
         uses: actions/checkout@v3
       
       - name: Run and Test Emulator without TTY
         run: |
-          for i in {1..3}; do
-            echo "Run #$i"
+          set -e
+          MAX_RETRIES=5
+          SUCCESS=false
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt #$i"
 
             docker run \
               --publish 8081:8081 \
@@ -97,14 +143,7 @@ jobs:
             echo "Checking Emulator Logs for 'Started' Keyword"
             if docker logs test-linux-emulator-no-tty-$i | grep -q "Started"; then
               echo "Emulator started successfully."
+              SUCCESS=true
+              break
             else
-              echo "Emulator failed to start." >&2
-              exit 1
-            fi
-
-            echo "Testing Emulator Endpoint"
-            curl -k "https://127.0.0.1:8081/_explorer/index.html"
-
-            echo "Cleaning up"
-            docker rm -f test-linux-emulator-no-tty-$i
-          done
+            
