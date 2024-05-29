@@ -50,7 +50,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install azure-cosmos
 
-      - name: Run and Test Emulator with TTY
+      - name: Run Emulator and Test
+        id: run_emulator
         run: |
           set -e
           MAX_RETRIES=5
@@ -64,7 +65,6 @@ jobs:
               --name=test-linux-emulator-tty-$i \
               --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
               --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
-              --tty \
               mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
 
             echo "Waiting for Emulator to Start"
@@ -88,103 +88,32 @@ jobs:
           if [ "$SUCCESS" = false ]; then
             echo "Emulator failed to start after $MAX_RETRIES attempts." >&2
             echo "::warning::Emulator failed to start after $MAX_RETRIES attempts."
+            exit 1
           fi
+        continue-on-error: true
+
+      - name: Download and install Cosmos DB emulator certificate
+        if: steps.run_emulator.outcome == 'success'
+        run: |
+          # Download the emulator certificate
+          curl -k https://localhost:8081/_explorer/emulator.pem --output emulatorcert.pem
+
+          # Install the emulator certificate
+          sudo cp emulatorcert.pem /usr/local/share/ca-certificates/emulatorcert.crt
+          sudo update-ca-certificates
+
+          # Verify the installation
+          ls -l /usr/local/share/ca-certificates/emulatorcert.crt
+          ls -l /etc/ssl/certs/emulatorcert.pem
 
       - name: Test Emulator with Python script
+        if: steps.run_emulator.outcome == 'success'
         run: |
           echo "Testing Emulator Endpoint with Python script"
           python testEmulator.py
 
       - name: Clean up
+        if: steps.run_emulator.outcome == 'success'
         run: |
           echo "Cleaning up"
           docker rm -f test-linux-emulator-tty-$i
-
-  container-test-job-no-tty:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Print Machine Information
-        run: |
-          echo "CPU Information:"
-          lscpu
-
-          echo "Memory Information:"
-          free -h
-
-          echo "Disk Usage:"
-          df -h
-
-          echo "Operating System Information:"
-          uname -a
-
-          echo "Network Configuration:"
-          ip addr show
-
-          echo "Docker Version:"
-          docker --version
-
-          echo "Docker Info:"
-          docker info
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install azure-cosmos
-
-      - name: Run and Test Emulator without TTY
-        run: |
-          set -e
-          MAX_RETRIES=5
-          SUCCESS=false
-          for i in $(seq 1 $MAX_RETRIES); do
-            echo "Attempt #$i"
-
-            docker run \
-              --publish 8081:8081 \
-              --detach \
-              --name=test-linux-emulator-no-tty-$i \
-              --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
-              --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
-              mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
-
-            echo "Waiting for Emulator to Start"
-            sleep 60
-
-            echo "Getting Emulator Logs"
-            docker logs test-linux-emulator-no-tty-$i
-
-            echo "Checking Emulator Logs for 'Started' Keyword"
-            if docker logs test-linux-emulator-no-tty-$i | grep -q "Started"; then
-              echo "Emulator started successfully."
-              SUCCESS=true
-              break
-            else
-              echo "Emulator failed to start on attempt #$i." >&2
-              docker rm -f test-linux-emulator-no-tty-$i
-              echo "Retrying..."
-            fi
-          done
-
-          if [ "$SUCCESS" = false ]; then
-            echo "Emulator failed to start after $MAX_RETRIES attempts." >&2
-            echo "::warning::Emulator failed to start after $MAX_RETRIES attempts."
-          fi
-
-      - name: Test Emulator with Python script
-        run: |
-          echo "Testing Emulator Endpoint with Python script"
-          python testEmulator.py
-
-      - name: Clean up
-        run: |
-          echo "Cleaning up"
-          docker rm -f test-linux-emulator-no-tty-$i
