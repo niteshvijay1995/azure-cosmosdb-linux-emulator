@@ -11,31 +11,17 @@ on:
 
 jobs:
   test_emulator:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        include:
-          - os: ubuntu-latest
-            python-path: /opt/hostedtoolcache/Python/3.12.3/x64
-          - os: macos-latest
-            python-path: /usr/local/opt/python@3.9/Frameworks/Python.framework/Versions/3.9
-          - os: windows-latest
-            python-path: C:\\hostedtoolcache\\windows\\Python\\3.9.1\\x64
+    runs-on: ubuntu-latest
 
     steps:
       # Print machine information
       - name: Print Machine Information
         run: |
           echo "CPU Information:"
-          echo "$(uname -a)"
+          lscpu
 
           echo "Memory Information:"
-          case "$(uname -s)" in
-            Linux*) free -h ;;
-            Darwin*) vm_stat ;;
-            CYGWIN*|MINGW*|MSYS*|MINGW64*) systeminfo | findstr /C:"Total Physical Memory" ;;
-          esac
+          free -h
 
           echo "Disk Usage:"
           df -h
@@ -44,11 +30,7 @@ jobs:
           uname -a
 
           echo "Network Configuration:"
-          case "$(uname -s)" in
-            Linux*) ip addr show ;;
-            Darwin*) ifconfig ;;
-            CYGWIN*|MINGW*|MSYS*|MINGW64*) ipconfig ;;
-          esac
+          ip addr show
 
           echo "Docker Version:"
           docker --version
@@ -86,7 +68,7 @@ jobs:
               --publish 8081:8081 \
               --publish 10250-10255:10250-10255 \
               --detach \
-              --name=test-${{ matrix.os }}-emulator-tty-$i \
+              --name=test-linux-emulator-tty-$i \
               --interactive \
               --tty \
               mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
@@ -95,16 +77,16 @@ jobs:
             sleep 90  # Increased startup timeout
 
             echo "Getting Emulator Logs"
-            docker logs test-${{ matrix.os }}-emulator-tty-$i
+            docker logs test-linux-emulator-tty-$i
 
             echo "Checking Emulator Logs for 'Started' Keyword"
-            if docker logs test-${{ matrix.os }}-emulator-tty-$i | grep -q "Started"; then
+            if docker logs test-linux-emulator-tty-$i | grep -q "Started"; then
               echo "Emulator started successfully."
               SUCCESS=true
               break
             else
               echo "Emulator failed to start on attempt #$i." >&2
-              docker rm -f test-${{ matrix.os }}-emulator-tty-$i || true  # Ensure cleanup even in failure
+              docker rm -f test-linux-emulator-tty-$i || true  # Ensure cleanup even in failure
               echo "Retrying..."
             fi
           done
@@ -123,36 +105,16 @@ jobs:
           curl -k https://localhost:8081/_explorer/emulator.pem > ~/emulatorcert.crt
           
           # Install the emulator certificate
-          case "$(uname -s)" in
-            Linux*) 
-              sudo cp ~/emulatorcert.crt /usr/local/share/ca-certificates/
-              sudo update-ca-certificates
-              sudo echo >> ${{ matrix.python-path }}/lib/python3.12/site-packages/certifi/cacert.pem
-              sudo cat /usr/local/share/ca-certificates/emulatorcert.crt >> ${{ matrix.python-path }}/lib/python3.12/site-packages/certifi/cacert.pem
-              ;;
-            Darwin*) 
-              sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ~/emulatorcert.crt
-              sudo echo >> ${{ matrix.python-path }}/lib/python3.9/site-packages/certifi/cacert.pem
-              sudo cat ~/emulatorcert.crt >> ${{ matrix.python-path }}/lib/python3.9/site-packages/certifi/cacert.pem
-              ;;
-            CYGWIN*|MINGW*|MSYS*|MINGW64*) 
-              certutil -addstore -f "ROOT" ~/emulatorcert.crt
-              ;;
-          esac
+          sudo cp ~/emulatorcert.crt /usr/local/share/ca-certificates/
+          sudo update-ca-certificates
 
           # Verify the installation
-          case "$(uname -s)" in
-            Linux*) 
-              ls -l /usr/local/share/ca-certificates/emulatorcert.crt
-              ls -l /etc/ssl/certs/emulatorcert.pem
-              ;;
-            Darwin*) 
-              sudo security find-certificate -c "localhost" /Library/Keychains/System.keychain
-              ;;
-            CYGWIN*|MINGW*|MSYS*|MINGW64*) 
-              certutil -store "ROOT" | findstr "localhost"
-              ;;
-          esac
+          ls -l /usr/local/share/ca-certificates/emulatorcert.crt
+          ls -l /etc/ssl/certs/emulatorcert.pem
+
+          # Append cert to python ca bundle
+          sudo echo >> /opt/hostedtoolcache/Python/3.12.3/x64/lib/python3.12/site-packages/certifi/cacert.pem
+          sudo cat /usr/local/share/ca-certificates/emulatorcert.crt >> /opt/hostedtoolcache/Python/3.12.3/x64/lib/python3.12/site-packages/certifi/cacert.pem
 
       # Test Emulator with Python script
       - name: Test Emulator with Python script
@@ -166,4 +128,4 @@ jobs:
         if: steps.run_emulator.outcome == 'success'
         run: |
           echo "Cleaning up"
-          docker rm -f test-${{ matrix.os }}-emulator-tty-$i || true  # Ensure cleanup even in failure
+          docker rm -f test-linux-emulator-tty-$i || true  # Ensure cleanup even in failure
