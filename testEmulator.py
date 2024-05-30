@@ -1,6 +1,8 @@
 import os
 import uuid
 from azure.cosmos import CosmosClient, PartitionKey, exceptions
+from requests.utils import DEFAULT_CA_BUNDLE_PATH
+print(DEFAULT_CA_BUNDLE_PATH)
 
 # Configure the connection to the Cosmos DB emulator
 endpoint = "https://localhost:8081/"
