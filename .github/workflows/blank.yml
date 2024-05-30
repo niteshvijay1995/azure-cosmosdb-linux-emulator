@@ -66,10 +66,11 @@ jobs:
 
             docker run \
               --publish 8081:8081 \
+              --publish 10250-10255:10250-10255 \
               --detach \
               --name=test-linux-emulator-tty-$i \
-              --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10 \
-              --env AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1 \
+              --interactive \
+              --tty \
               mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
 
             echo "Waiting for Emulator to Start"
@@ -101,10 +102,10 @@ jobs:
         if: steps.run_emulator.outcome == 'success'
         run: |
           # Download the emulator certificate
-          curl -k https://localhost:8081/_explorer/emulator.pem --output emulatorcert.pem
-
+          curl -k https://localhost:8081/_explorer/emulator.pem > ~/emulatorcert.crt
+          
           # Install the emulator certificate
-          sudo cp emulatorcert.pem /usr/local/share/ca-certificates/emulatorcert.crt
+          sudo cp ~/emulatorcert.crt /usr/local/share/ca-certificates/
           sudo update-ca-certificates
 
           # Verify the installation
