@@ -113,8 +113,8 @@ jobs:
           ls -l /etc/ssl/certs/emulatorcert.pem
 
           # Append cert to python ca bundle
-          echo >> /opt/hostedtoolcache/Python/3.12.3/x64/lib/python3.12/site-packages/certifi/cacert.pem
-          cat /usr/local/share/ca-certificates/emulatorcert.crt >> /opt/hostedtoolcache/Python/3.12.3/x64/lib/python3.12/site-packages/certifi/cacert.pem
+          sudo echo >> /opt/hostedtoolcache/Python/3.12.3/x64/lib/python3.12/site-packages/certifi/cacert.pem
+          sudo cat /usr/local/share/ca-certificates/emulatorcert.crt >> /opt/hostedtoolcache/Python/3.12.3/x64/lib/python3.12/site-packages/certifi/cacert.pem
 
       # Test Emulator with Python script
       - name: Test Emulator with Python script
