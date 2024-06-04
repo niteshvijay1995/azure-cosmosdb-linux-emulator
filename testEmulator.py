@@ -2,6 +2,8 @@ import os
 import uuid
 from azure.cosmos import CosmosClient, PartitionKey, exceptions
 from requests.utils import DEFAULT_CA_BUNDLE_PATH
+import random
+
 print(DEFAULT_CA_BUNDLE_PATH)
 
 # Configure the connection to the Cosmos DB emulator
