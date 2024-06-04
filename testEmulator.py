@@ -26,19 +26,35 @@ try:
     print(f"Container '{container_name}' created or already exists")
 
     # Insert 100 documents
-    for i in range(100):
+    for i in range(10000):
         item = {
             'id': str(uuid.uuid4()),
             'name': f'Test Item {i+1}',
-            'age': 30 + (i % 10)  # Adding some variation to the data
+            'age': 30 + (i % 10),  # Adding some variation to the data
+            'size': i+1  # Increase the size of each document
         }
+
+        # Add more random fields to increase document size
+        for j in range(10):
+            field_name = f'field{j+1}'
+            field_value = random.randint(1, 100)
+            item[field_name] = field_value
 
         # Insert the item
         container.create_item(body=item)
-    print("100 items inserted")
 
     # Query the inserted items
     query = "SELECT * FROM c WHERE c.name LIKE 'Test Item%'"
+    items = list(container.query_items(query=query, enable_cross_partition_query=True))
+    print(f"Queried items: {len(items)} items found")
+
+    # Query items with age greater than 35
+    query = "SELECT * FROM c WHERE c.age > 35"
+    items = list(container.query_items(query=query, enable_cross_partition_query=True))
+    print(f"Queried items: {len(items)} items found")
+
+    # Query items with size less than or equal to 50
+    query = "SELECT * FROM c WHERE c.size <= 50"
     items = list(container.query_items(query=query, enable_cross_partition_query=True))
     print(f"Queried items: {len(items)} items found")
 
