@@ -77,15 +77,22 @@ jobs:
             echo "Getting Emulator Logs"
             docker logs test-linux-emulator-tty-$i
 
-            echo "Checking Emulator Logs for 'Started' Keyword"
-            if docker logs test-linux-emulator-tty-$i | grep -q "Started"; then
-              echo "Emulator started successfully."
+            MAX_RETRIES=5
+          SUCCESS=false
+
+          echo "Checking if https://localhost:8081/_explorer/emulator.pem is accessible"
+          for ((i=1; i<=MAX_RETRIES; i++)); do
+            if curl --silent --fail -k https://localhost:8081/_explorer/emulator.pem; then
+              echo "Emulator responded successfully."
               SUCCESS=true
               break
             else
-              echo "Emulator failed to start on attempt #$i." >&2
-              docker rm -f test-linux-emulator-tty-$i || true  # Ensure cleanup even in failure
+              echo "Emulator failed to respond on attempt #$i." >&2
+              docker rm -f test-linux-emulator-tty-1 || true  # Ensure cleanup even in failure
               echo "Retrying..."
+              sleep 5  # Wait before retrying
+              # Restart the emulator container (customize as needed)
+              docker run -d --name test-linux-emulator-tty-1 your-emulator-image
             fi
           done
 
