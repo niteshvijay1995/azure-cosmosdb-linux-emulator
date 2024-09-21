@@ -76,7 +76,7 @@ jobs:
               --name=test-linux-emulator-tty-$i \
               --interactive \
               --tty \
-              cosmosdbemulatorstagemcr.azurecr.io/cosmosdb/linux/azure-cosmos-emulator:backup-2.14.16
+              mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
 
             echo "Waiting for Emulator to Start"
             sleep 90  # Increased startup timeout
