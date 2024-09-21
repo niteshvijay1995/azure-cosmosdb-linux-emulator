@@ -95,6 +95,7 @@ jobs:
               echo "::error::Emulator failed to start after $MAX_RETRIES attempts."
               exit 1
             else
+              docker logs test-linux-emulator-tty-$i
               break
             fi
           done
