@@ -85,9 +85,9 @@ jobs:
                 break
               else
                 echo "Emulator failed to respond on attempt #$i." >&2
-                docker rm -f test-linux-emulator-tty-1 || true  # Ensure cleanup even in failure
                 echo "Retrying..."
-            fi
+                sleep 5
+              fi
             done
 
             if [ "$SUCCESS" = false ]; then
