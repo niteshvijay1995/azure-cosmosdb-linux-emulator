@@ -119,8 +119,8 @@ jobs:
           CERTIFI_PATH="/opt/hostedtoolcache/Python/${PYTHON_VERSION}/x64/lib/python${PYTHON_VERSION}/site-packages/certifi/cacert.pem"
           
           # Append cert to python ca bundle
-          sudo echo >> ${CERTIFI_PATH}
-          sudo cat /usr/local/share/ca-certificates/emulatorcert.crt >> ${CERTIFI_PATH}
+          # sudo echo >> ${CERTIFI_PATH}
+          # sudo cat /usr/local/share/ca-certificates/emulatorcert.crt >> ${CERTIFI_PATH}
 
       # Test Emulator with Python script
       - name: Test Emulator with Python script
