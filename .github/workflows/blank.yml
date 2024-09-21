@@ -94,6 +94,8 @@ jobs:
               echo "Emulator failed to start after $MAX_RETRIES attempts." >&2
               echo "::error::Emulator failed to start after $MAX_RETRIES attempts."
               exit 1
+            else
+              break
             fi
           done
 
