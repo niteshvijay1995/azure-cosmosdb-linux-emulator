@@ -78,13 +78,13 @@ jobs:
             SUCCESS=false
 
             echo "Checking if https://localhost:8081/_explorer/emulator.pem is accessible"
-            for ((i=1; i<=MAX_RETRIES; i++)); do
+            for ((j=1; j<=MAX_RETRIES; j++)); do
               if curl --silent --fail -k https://localhost:8081/_explorer/emulator.pem; then
                 echo "Emulator responded successfully."
                 SUCCESS=true
                 break
               else
-                echo "Emulator failed to respond on attempt #$i." >&2
+                echo "Emulator failed to respond on attempt #$j." >&2
                 echo "Retrying..."
                 sleep 5
               fi
