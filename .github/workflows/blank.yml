@@ -71,36 +71,31 @@ jobs:
               --tty \
               mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
 
-            echo "Waiting for Emulator to Start"
-            sleep 90  # Increased startup timeout
-
             echo "Getting Emulator Logs"
             docker logs test-linux-emulator-tty-$i
 
             MAX_RETRIES=5
-          SUCCESS=false
+            SUCCESS=false
 
-          echo "Checking if https://localhost:8081/_explorer/emulator.pem is accessible"
-          for ((i=1; i<=MAX_RETRIES; i++)); do
-            if curl --silent --fail -k https://localhost:8081/_explorer/emulator.pem; then
-              echo "Emulator responded successfully."
-              SUCCESS=true
-              break
-            else
-              echo "Emulator failed to respond on attempt #$i." >&2
-              docker rm -f test-linux-emulator-tty-1 || true  # Ensure cleanup even in failure
-              echo "Retrying..."
-              sleep 5  # Wait before retrying
-              # Restart the emulator container (customize as needed)
-              docker run -d --name test-linux-emulator-tty-1 your-emulator-image
+            echo "Checking if https://localhost:8081/_explorer/emulator.pem is accessible"
+            for ((i=1; i<=MAX_RETRIES; i++)); do
+              if curl --silent --fail -k https://localhost:8081/_explorer/emulator.pem; then
+                echo "Emulator responded successfully."
+                SUCCESS=true
+                break
+              else
+                echo "Emulator failed to respond on attempt #$i." >&2
+                docker rm -f test-linux-emulator-tty-1 || true  # Ensure cleanup even in failure
+                echo "Retrying..."
+            fi
+            done
+
+            if [ "$SUCCESS" = false ]; then
+              echo "Emulator failed to start after $MAX_RETRIES attempts." >&2
+              echo "::error::Emulator failed to start after $MAX_RETRIES attempts."
+              exit 1
             fi
           done
-
-          if [ "$SUCCESS" = false ]; then
-            echo "Emulator failed to start after $MAX_RETRIES attempts." >&2
-            echo "::error::Emulator failed to start after $MAX_RETRIES attempts."
-            exit 1
-          fi
 
       # Download and install Cosmos DB emulator certificate
       - name: Download and install Cosmos DB emulator certificate
