@@ -116,11 +116,12 @@ jobs:
             echo "Python is not installed."
             exit 1
           fi
+          
           CERTIFI_PATH="/opt/hostedtoolcache/Python/${PYTHON_VERSION}/x64/lib/python${PYTHON_VERSION}/site-packages/certifi/cacert.pem"
           
           # Append cert to python ca bundle
-          # sudo echo >> ${CERTIFI_PATH}
-          # sudo cat /usr/local/share/ca-certificates/emulatorcert.crt >> ${CERTIFI_PATH}
+          sudo echo >> /opt/hostedtoolcache/Python/3.12.6/x64/lib/python3.12/site-packages/certifi/cacert.pem
+          sudo cat /usr/local/share/ca-certificates/emulatorcert.crt >> /opt/hostedtoolcache/Python/3.12.6/x64/lib/python3.12/site-packages/certifi/cacert.pem
 
       # Test Emulator with Python script
       - name: Test Emulator with Python script
