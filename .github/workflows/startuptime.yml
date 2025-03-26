@@ -23,8 +23,10 @@ jobs:
 
     - name: Start Cosmos DB Emulator and Measure Time
       run: |
-        # Start Cosmos DB Emulator after installation
-        $emulatorPath = "C:\Program Files\Microsoft Cosmos DB Emulator\CosmosDB.Emulator.exe"
+        # Define the correct path to the Cosmos DB Emulator executable
+        $emulatorPath = "C:\Program Files\Azure Cosmos DB Emulator\CosmosDB.Emulator.exe"
+
+        # Check if the emulator executable exists at the given path
         if (Test-Path $emulatorPath) {
           $startTime = Get-Date
           Write-Host "Starting Cosmos DB Emulator..."
@@ -35,5 +37,5 @@ jobs:
           $duration = $endTime - $startTime
           Write-Host "Cosmos DB Emulator started in $($duration.TotalSeconds) seconds"
         } else {
-          Write-Host "Cosmos DB Emulator not found at path $emulatorPath"
+          Write-Host "Cosmos DB Emulator executable not found at path $emulatorPath"
         }
