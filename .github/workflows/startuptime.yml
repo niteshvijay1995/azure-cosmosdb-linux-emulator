@@ -1,0 +1,45 @@
+name: Measure Cosmos DB Emulator Startup Time
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  cosmosdb-emulator-timing:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Cosmos DB Emulator
+      run: |
+        Invoke-WebRequest -Uri https://aka.ms/cosmosdb-emulator -OutFile cosmosdb-emulator-installer.exe
+        Start-Process -Wait -FilePath cosmosdb-emulator-installer.exe
+
+    - name: Install CosmosDB PowerShell Module
+      run: |
+        Install-Module -Name Microsoft.Azure.CosmosDB.Emulator -Force -Scope CurrentUser
+
+    - name: Start Cosmos DB Emulator and Measure Time
+      run: |
+        # Import the CosmosDB Emulator PowerShell module
+        Import-Module Microsoft.Azure.CosmosDB.Emulator
+
+        # Start Cosmos DB Emulator using the PowerShell module
+        $startTime = Get-Date
+        Write-Host "Starting Cosmos DB Emulator..."
+        Start-CosmosDBEmulator
+
+        # Wait for the Cosmos DB Emulator to reach 'Started' status
+        $emulatorStatus = Get-CosmosDBEmulatorStatus
+        while ($emulatorStatus.Status -ne 'Started') {
+          Write-Host "Waiting for emulator to start..."
+          Start-Sleep -Seconds 5
+          $emulatorStatus = Get-CosmosDBEmulatorStatus
+        }
+
+        $endTime = Get-Date
+        $duration = $endTime - $startTime
+        Write-Host "Cosmos DB Emulator started in $($duration.TotalSeconds) seconds"
