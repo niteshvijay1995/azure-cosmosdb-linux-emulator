@@ -1,4 +1,4 @@
-name: Measure Cosmos DB Emulator Startup Time
+name: Setup Cosmos DB Emulator on Windows
 
 on:
   push:
@@ -6,36 +6,34 @@ on:
       - main
 
 jobs:
-  cosmosdb-emulator-timing:
+  cosmosdb-emulator:
     runs-on: windows-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install Cosmos DB Emulator
+    - name: Download and Install Cosmos DB Emulator
       run: |
-        Invoke-WebRequest -Uri https://aka.ms/cosmosdb-emulator -OutFile cosmosdb-emulator-installer.exe
-        Start-Process -Wait -FilePath cosmosdb-emulator-installer.exe
+        # Download Cosmos DB Emulator MSI
+        Invoke-WebRequest -Uri https://aka.ms/cosmosdb-emulator -OutFile cosmosdb-emulator-installer.msi
+        
+        # Install the Cosmos DB Emulator using msiexec
+        Start-Process msiexec.exe -ArgumentList '/i', 'cosmosdb-emulator-installer.msi', '/quiet', '/norestart' -Wait
 
     - name: Start Cosmos DB Emulator and Measure Time
       run: |
-        # Import the CosmosDB Emulator PowerShell module
-        Import-Module Microsoft.Azure.CosmosDB.Emulator
+        # Start Cosmos DB Emulator after installation
+        $emulatorPath = "C:\Program Files\Microsoft Cosmos DB Emulator\CosmosDB.Emulator.exe"
+        if (Test-Path $emulatorPath) {
+          $startTime = Get-Date
+          Write-Host "Starting Cosmos DB Emulator..."
+          Start-Process -Wait -FilePath $emulatorPath
 
-        # Start Cosmos DB Emulator using the PowerShell module
-        $startTime = Get-Date
-        Write-Host "Starting Cosmos DB Emulator..."
-        Start-CosmosDBEmulator
-
-        # Wait for the Cosmos DB Emulator to reach 'Started' status
-        $emulatorStatus = Get-CosmosDBEmulatorStatus
-        while ($emulatorStatus.Status -ne 'Started') {
-          Write-Host "Waiting for emulator to start..."
-          Start-Sleep -Seconds 5
-          $emulatorStatus = Get-CosmosDBEmulatorStatus
+          # Wait for emulator to start (if necessary, based on your logic)
+          $endTime = Get-Date
+          $duration = $endTime - $startTime
+          Write-Host "Cosmos DB Emulator started in $($duration.TotalSeconds) seconds"
+        } else {
+          Write-Host "Cosmos DB Emulator not found at path $emulatorPath"
         }
-
-        $endTime = Get-Date
-        $duration = $endTime - $startTime
-        Write-Host "Cosmos DB Emulator started in $($duration.TotalSeconds) seconds"
