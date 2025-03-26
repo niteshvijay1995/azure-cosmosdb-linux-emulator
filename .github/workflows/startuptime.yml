@@ -18,10 +18,6 @@ jobs:
         Invoke-WebRequest -Uri https://aka.ms/cosmosdb-emulator -OutFile cosmosdb-emulator-installer.exe
         Start-Process -Wait -FilePath cosmosdb-emulator-installer.exe
 
-    - name: Install CosmosDB PowerShell Module
-      run: |
-        Install-Module -Name Microsoft.Azure.CosmosDB.Emulator -Force -Scope CurrentUser
-
     - name: Start Cosmos DB Emulator and Measure Time
       run: |
         # Import the CosmosDB Emulator PowerShell module
